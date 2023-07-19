@@ -1,4 +1,4 @@
-c_id,c_d_id,c_w_id,c_first,c_middle,c_last,c_street_1,c_street_2,c_city,c_state,c_zip,c_phone,c_since,c_credit,c_credit_lim,c_discount,c_balance,c_ytd_payment,c_paymeny_cnt,c_delivery_cnt,c_data
+c_id,c_d_id,c_w_id,c_first,c_middle,c_last,c_street_1,c_street_2,c_city,c_state,c_zip,c_phone,c_since,c_credit,c_credit_lim,c_discount,c_balance,c_ytd_payment,c_payment_cnt,c_delivery_cnt,c_data
 1,1,1,3SruobBzmyAsPt3O,OE,BARRBARRBARR,HFyPR3Ok0xWooHFGcMtF,Q0rWFcOM0NurzoaRPRkz,MeyGIjZClhSF1DZ9h36u,Mq,ZGaw787DL,8718567046448960,2023-07-07 22:24:08,GC,50000,0.02,10,10,1,0,QAMm4RWDmIC6rCbvARw97ZpNjPQ4Ka0UfdtO9qnUvXcoUfXcbs
 2,1,1,GpdD1nCskexY8WDq,OE,BARRBARROUGH,VvlLhE1AeT0wjdtFwFmd,NongQtY35eHp7beXKbEX,MCCli2ROICp2EFtAVxAC,P2,98h6ggasi,2477468268249056,2023-07-07 22:24:08,BC,50000,0.38,10,10,1,0,4ZaXlXUBIW9CdYlvWb7PZxrszILUgn9jcnn7Gbju9pxL1tGqwz
 3,1,1,F9qjt40ptYTZW4nf,OE,BARRBARRABLE,k7sQaLNHd70SOu1BLbcB,wAAlaB08omIIcyy3I0hS,4u35aL3TzHNfNbW7XlHZ,Sw,epJ2SyIvy,6064412253180124,2023-07-07 22:24:08,GC,50000,0.33,10,10,1,0,Cce6DnkaV4p3RTYifVFPCxD41W6bdmdqcoBQAdHC2EmgIRI2qu
