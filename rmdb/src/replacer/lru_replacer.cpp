@@ -28,6 +28,16 @@ bool LRUReplacer::victim(frame_id_t* frame_id) {
     //  利用lru_replacer中的LRUlist_,LRUHash_实现LRU策略
     //  选择合适的frame指定为淘汰页面,赋值给*frame_id
 
+    //检查是否有frame
+    if(LRUlist_.empty()){
+        frame_id = nullptr;
+        return false;
+    }
+    //删除frame
+    auto frame = LRUlist_.back();
+    LRUhash_.erase(frame);
+    LRUlist_.pop_back();
+    *frame_id = frame;
     return true;
 }
 
@@ -40,6 +50,14 @@ void LRUReplacer::pin(frame_id_t frame_id) {
     // Todo:
     // 固定指定id的frame
     // 在数据结构中移除该frame
+
+    //检查指定frame是否存在
+    if (LRUhash_.find(frame_id) == LRUhash_.end()) {
+        return;
+    }
+    //固定指定frame
+    LRUlist_.erase(LRUhash_[frame_id]);
+    LRUhash_.erase(frame_id);
 }
 
 /**
@@ -50,6 +68,15 @@ void LRUReplacer::unpin(frame_id_t frame_id) {
     // Todo:
     //  支持并发锁
     //  选择一个frame取消固定
+
+    //检查指定frame是否存在
+    if (LRUhash_.find(frame_id) == LRUhash_.end()) {
+        return;
+    }
+    //取消固定指定frame
+    LRUlist_.emplace_front(frame_id);
+    LRUhash_.emplace(frame_id, LRUlist_.begin());
+
 }
 
 /**
