@@ -187,7 +187,6 @@ RmPageHandle RmFileHandle::create_new_page_handle() {
     file_hdr_.num_pages++;
     file_hdr_.first_free_page_no = page_hdl.page->get_page_id().page_no;
     return page_hdl;
-
 }
 
 /**
@@ -203,7 +202,12 @@ RmPageHandle RmFileHandle::create_page_handle() {
     //     1.2 有空闲页：直接获取第一个空闲页
     // 2. 生成page handle并返回给上层
 
-    return RmPageHandle(&file_hdr_, nullptr);
+    int page_no = file_hdr_.first_free_page_no;
+    if(page_no != RM_NO_PAGE){
+        return fetch_page_handle(page_no);
+    }else{
+        return create_new_page_handle();
+    }
 }
 
 /**
