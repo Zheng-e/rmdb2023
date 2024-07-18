@@ -177,7 +177,17 @@ RmPageHandle RmFileHandle::create_new_page_handle() {
     // 2.更新page handle中的相关信息
     // 3.更新file_hdr_
 
-    return RmPageHandle(&file_hdr_, nullptr);
+    PageId page_id;
+    page_id.fd = fd_;
+    Page *page = buffer_pool_manager_->new_page(&page_id);
+    RmPageHandle page_hdl = RmPageHandle(&file_hdr_, page);
+    Bitmap::init(page_hdl.bitmap,file_hdr_.bitmap_size);
+    page_hdl.page_hdr->num_records = 0;
+    page_hdl.page_hdr->next_free_page_no = RM_NO_PAGE;
+    file_hdr_.num_pages++;
+    file_hdr_.first_free_page_no = page_hdl.page->get_page_id().page_no;
+    return page_hdl;
+
 }
 
 /**
