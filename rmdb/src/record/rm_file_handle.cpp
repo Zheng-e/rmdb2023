@@ -130,6 +130,14 @@ void RmFileHandle::update_record(const Rid& rid, char* buf, Context* context) {
     // 1. 获取指定记录所在的page handle
     // 2. 更新记录
 
+    RmPageHandle page_handle = fetch_page_handle(rid.page_no);
+    if(!Bitmap::is_set(page_handle.bitmap, rid.slot_no)){
+        throw RecordNotFoundError(rid.page_no,rid.slot_no);
+    }
+    int record_size = file_hdr_.record_size;
+    char* slot_ptr = page_handle.get_slot(rid.slot_no);
+    std::memcpy(slot_ptr, buf, record_size);
+    buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
 }
 
 /**
