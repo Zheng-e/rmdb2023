@@ -169,8 +169,23 @@ bool BufferPoolManager::flush_page(PageId page_id) {
     // 1.1 目标页P没有被page_table_记录 ，返回false
     // 2. 无论P是否为脏都将其写回磁盘。
     // 3. 更新P的is_dirty_
-   
-    return true;
+    
+    std::lock_guard<std::mutex>lock(latch_);
+
+    //尝试在page_table_中搜寻page_id对应的页P
+    if(page_table_.find(page_id) == page_table_.end()){
+        //P没有被页表记录，返回false
+        return false;
+    }else{
+        frame_id_t frame = page_table_[page_id];
+        Page *page = &(pages_[frame]);
+        //将目标页写回磁盘
+        disk_manager_->write_page(page_id.fd, page_id.page_no, page->data_, PAGE_SIZE);
+        //更新目标页的is_dirty_
+        page->is_dirty_ = false;
+        return true;
+    }
+
 }
 
 /**
