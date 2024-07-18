@@ -232,7 +232,32 @@ bool BufferPoolManager::delete_page(PageId page_id) {
     // 2.   若目标页的pin_count不为0，则返回false
     // 3.   将目标页数据写回磁盘，从页表中删除目标页，重置其元数据，将其加入free_list_，返回true
     
-    return true;
+    std::lock_guard<std::mutex>lock(latch_);
+    //在页表中查找目标页
+    if(page_table_.find(page_id) == page_table_.end()){
+        //页表中不存在目标页，返回true
+        return true;
+    }else{
+        frame_id_t new_frame_id = page_table_[page_id];
+        Page *page = &(pages_[new_frame_id]);
+        if(page->pin_count_ != 0) {
+            //若目标页的pin_count不为0，则返回false
+            return false;
+        }else{
+            //将目标页数据写回磁盘
+            disk_manager_->write_page(page_id.fd, page_id.page_no, page->data_, PAGE_SIZE);
+            //从页表中删除目标页 
+            page_table_.erase(page_id);
+            //重置其元素
+            page->pin_count_ = 0;
+            page->reset_memory();
+            page->is_dirty_ = false;
+            //将其加入free_lish_
+            free_list_.emplace_back(new_frame_id);
+            //返回true
+            return true;
+        }
+    }
 }
 
 /**
