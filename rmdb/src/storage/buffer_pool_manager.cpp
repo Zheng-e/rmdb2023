@@ -177,8 +177,8 @@ bool BufferPoolManager::flush_page(PageId page_id) {
         //P没有被页表记录，返回false
         return false;
     }else{
-        frame_id_t frame = page_table_[page_id];
-        Page *page = &(pages_[frame]);
+        frame_id_t new_frame_id = page_table_[page_id];
+        Page *page = &(pages_[new_frame_id]);
         //将目标页写回磁盘
         disk_manager_->write_page(page_id.fd, page_id.page_no, page->data_, PAGE_SIZE);
         //更新目标页的is_dirty_
@@ -199,7 +199,27 @@ Page* BufferPoolManager::new_page(PageId* page_id) {
     // 3.   将frame的数据写回磁盘
     // 4.   固定frame，更新pin_count_
     // 5.   返回获得的page
-   return nullptr;
+
+    std::lock_guard<std::mutex>lock(latch_);
+    //获得一个可用的frame
+    frame_id_t new_frame_id;
+    if(!find_victim_page(&new_frame_id)) {
+        //无法获得则返回nullptr
+        return nullptr;
+    }else{
+        //在fd对应的文件分配一个新的page_id
+        page_id->page_no = disk_manager_->allocate_page(page_id->fd);
+        // 将frame的数据写回磁盘
+        Page *page = &(pages_[new_frame_id]);
+        update_page(page, *page_id, new_frame_id);
+        //固定frame
+        replacer_->pin(new_frame_id);
+        //更新pin_count_
+        page->pin_count_ = 1;
+        //返回获得的page
+        return page;
+    }
+
 }
 
 /**
