@@ -104,6 +104,18 @@ void RmFileHandle::delete_record(const Rid& rid, Context* context) {
     // 1. 获取指定记录所在的page handle
     // 2. 更新page_handle.page_hdr中的数据结构
     // 注意考虑删除一条记录后页面未满的情况，需要调用release_page_handle()
+
+    //获取指定记录所在的page handle
+    RmPageHandle page_handle = fetch_page_handle(rid.page_no);
+    if(!Bitmap::is_set(page_handle.bitmap,rid.slot_no)){
+        throw RecordNotFoundError(rid.page_no,rid.slot_no);
+    }
+    Bitmap::reset(page_handle.bitmap,rid.slot_no);
+    int record_nums = file_hdr_.num_records_per_page;
+    if(page_handle.page_hdr->num_records-- == record_nums){
+        release_page_handle(page_handle);
+    }   
+    buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true); 
 }
 
 
