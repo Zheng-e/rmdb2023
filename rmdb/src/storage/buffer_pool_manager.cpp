@@ -265,5 +265,12 @@ bool BufferPoolManager::delete_page(PageId page_id) {
  * @param {int} fd 文件句柄
  */
 void BufferPoolManager::flush_all_pages(int fd) {
-    
-}
+    std::lock_guard<std::mutex>lock(latch_);
+    for (int i = 0; i < pool_size_; i++) {
+        Page *page = &pages_[i];
+        if (page->get_page_id().fd == fd) {
+            disk_manager_->write_page(page->get_page_id().fd, page->get_page_id().page_no, page->get_data(), PAGE_SIZE);
+            page->is_dirty_ = false;
+        }
+    }
+}   
