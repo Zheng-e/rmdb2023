@@ -21,7 +21,17 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record(const Rid& rid, Context* cont
     // 1. 获取指定记录所在的page handle
     // 2. 初始化一个指向RmRecord的指针（赋值其内部的data和size）
 
-    return nullptr;
+    //获取指定记录所在的page handle
+    RmPageHandle page_handle = fetch_page_handle(rid.page_no);
+    //初始化指向RmRecord的指针
+    int record_size = page_handle.file_hdr->record_size;
+    auto rm_record = std::make_unique<RmRecord>(record_size);
+    char* data_ptr = page_handle.get_slot(rid.slot_no);
+    std::memcpy(rm_record->data,data_ptr,record_size);
+    rm_record->size = record_size;
+    buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+    return rm_record;
+
 }
 
 /**
@@ -38,7 +48,29 @@ Rid RmFileHandle::insert_record(char* buf, Context* context) {
     // 4. 更新page_handle.page_hdr中的数据结构
     // 注意考虑插入一条记录后页面已满的情况，需要更新file_hdr_.first_free_page_no
 
-    return Rid{-1, -1};
+    int page_no = file_hdr_.first_free_page_no;
+    if(page_no == INVALID_PAGE_ID){
+        //如果不存在有未满的page handle，则创建一个新的page handle
+        file_hdr_.first_free_page_no = create_page_handle().page->get_page_id().page_no;
+        buffer_pool_manager_->unpin_page({fd_, file_hdr_.first_free_page_no}, false);
+    }
+    //如果有空闲的page handle，则获取该page handle
+    RmPageHandle page_handle = fetch_page_handle(file_hdr_.first_free_page_no);
+    //在page handle中找到空闲slot位置
+    int record_size = file_hdr_.record_size;
+    int record_nums = file_hdr_.num_records_per_page;
+    int slot_no = Bitmap::first_bit(false, page_handle.bitmap, record_nums);
+    //将buf复制到空闲slot位置
+    char* slot_ptr = page_handle.get_slot(slot_no);
+    std::memcpy(slot_ptr, buf, record_size);
+    Bitmap::set(page_handle.bitmap, slot_no);
+    //更新page_handle.page_hdr中的数据结构
+    page_handle.page_hdr->num_records++;
+    if (page_handle.page_hdr->num_records == record_nums) {
+        file_hdr_.first_free_page_no = page_handle.page_hdr->next_free_page_no;
+    }
+    buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
+    return Rid{page_handle.page->get_page_id().page_no,slot_no};
 }
 
 /**
