@@ -51,14 +51,13 @@ void BufferPoolManager::update_page(Page *page, PageId new_page_id, frame_id_t n
     //如果是脏页，写回磁盘
     if(page->is_dirty_ == true){
         disk_manager_->write_page(page->id_.fd, page->id_.page_no, page->data_, PAGE_SIZE);
-        page_table_.erase(page->id_);
-        page->id_ = new_page_id;
         page->is_dirty_ = false;
-        page->reset_memory();
-        page->pin_count_ = 0;
-        page_table_.emplace(new_page_id, new_frame_id);
     }
-
+    page_table_.erase(page->id_);
+    page->id_ = new_page_id;
+    page->reset_memory();
+    page->pin_count_ = 0;
+    page_table_.emplace(new_page_id, new_frame_id);
 }
 
 /**
