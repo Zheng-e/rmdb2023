@@ -54,10 +54,11 @@ void LRUReplacer::pin(frame_id_t frame_id) {
     //检查指定frame是否存在
     if (LRUhash_.find(frame_id) == LRUhash_.end()) {
         return;
+    }else{
+        //固定指定frame
+        LRUlist_.erase(LRUhash_[frame_id]);
+        LRUhash_.erase(frame_id);
     }
-    //固定指定frame
-    LRUlist_.erase(LRUhash_[frame_id]);
-    LRUhash_.erase(frame_id);
 }
 
 /**
@@ -69,14 +70,15 @@ void LRUReplacer::unpin(frame_id_t frame_id) {
     //  支持并发锁
     //  选择一个frame取消固定
 
+    std::scoped_lock lock{latch_};
     //检查指定frame是否存在
-    if (LRUhash_.find(frame_id) == LRUhash_.end()) {
+    if (LRUhash_.find(frame_id) != LRUhash_.end()) {
         return;
+    }else{
+        //取消固定指定frame
+        LRUlist_.emplace_front(frame_id);
+        LRUhash_.emplace(frame_id, LRUlist_.begin());
     }
-    //取消固定指定frame
-    LRUlist_.emplace_front(frame_id);
-    LRUhash_.emplace(frame_id, LRUlist_.begin());
-
 }
 
 /**
