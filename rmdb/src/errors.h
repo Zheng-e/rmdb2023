@@ -59,6 +59,11 @@ class FileNotFoundError : public RMDBError {
     FileNotFoundError(const std::string &filename) : RMDBError("File not found: " + filename) {}
 };
 
+class FileNotDeleteError : public RMDBError {
+   public:
+    FileNotDeleteError(const std::string &filename) : RMDBError("File not delete: " + filename) {}
+};
+
 // RM errors
 class RecordNotFoundError : public RMDBError {
    public:
@@ -69,6 +74,12 @@ class RecordNotFoundError : public RMDBError {
 class InvalidRecordSizeError : public RMDBError {
    public:
     InvalidRecordSizeError(int record_size) : RMDBError("Invalid record size: " + std::to_string(record_size)) {}
+};
+
+class InvalidSlotNoError : public RMDBError {
+    public:
+        InvalidSlotNoError(int slot_no, int record_num) : RMDBError("Invalid slot no: " + std::to_string(slot_no) 
+            + ", Num record per page: " + std::to_string(record_num)) {}
 };
 
 // IX errors

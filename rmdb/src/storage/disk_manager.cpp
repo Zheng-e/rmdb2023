@@ -40,7 +40,6 @@ void DiskManager::write_page(int fd, page_id_t page_no, const char *offset, int 
     if(write_num_bytes != num_bytes){
         throw InternalError("DiskManager::write_page Error");
     }
-
 }
 
 /**
@@ -64,7 +63,6 @@ void DiskManager::read_page(int fd, page_id_t page_no, char *offset, int num_byt
     if(read_num_bytes != num_bytes){
         throw InternalError("DiskManager::read_page Error");
     }
-
 }
 
 /**
@@ -126,7 +124,7 @@ void DiskManager::create_file(const std::string &path) {
         throw FileExistsError(path);
     }
     //若文件不存在则创建文件
-    int fd = open(path.c_str(), O_CREAT, 0777);
+    int fd = open(path.c_str(), O_CREAT);
     if (fd == -1) {
         throw UnixError();
     }
@@ -134,7 +132,6 @@ void DiskManager::create_file(const std::string &path) {
     if (close(fd) == -1) {
         throw FileNotClosedError(path);
     }
-
 }
 
 /**
