@@ -32,6 +32,7 @@ bool BufferPoolManager::find_victim_page(frame_id_t* frame_id) {
         return true;
     }
     //可替换帧查找失败
+    frame_id = nullptr;
     return false;
 }
 
@@ -50,14 +51,12 @@ void BufferPoolManager::update_page(Page *page, PageId new_page_id, frame_id_t n
     //如果是脏页，写回磁盘
     if(page->is_dirty_ == true){
         disk_manager_->write_page(page->id_.fd, page->id_.page_no, page->data_, PAGE_SIZE);
-        page->reset_memory();
-        page->is_dirty_ = false;
-        //注意两者先后顺序
-        page_table_.erase(page->get_page_id());
+        page_table_.erase(page->id_);
         page->id_ = new_page_id;
+        page->is_dirty_ = false;
+        page->reset_memory();
         page->pin_count_ = 0;
-        //此时page->id_已经是new_page_id
-        page_table_.emplace(page->id_, new_frame_id);
+        page_table_.emplace(new_page_id, new_frame_id);
     }
 
 }
@@ -80,7 +79,6 @@ Page* BufferPoolManager::fetch_page(PageId page_id) {
     // 5.     返回目标页
 
     std::lock_guard<std::mutex>lock(latch_);
-    
     if(page_table_.find(page_id) != page_table_.end()){
         //若目标页有被page_table_记录
         frame_id_t frame = page_table_[page_id];
@@ -180,7 +178,7 @@ bool BufferPoolManager::flush_page(PageId page_id) {
         frame_id_t new_frame_id = page_table_[page_id];
         Page *page = &(pages_[new_frame_id]);
         //将目标页写回磁盘
-        disk_manager_->write_page(page_id.fd, page_id.page_no, page->data_, PAGE_SIZE);
+        disk_manager_->write_page(page->id_.fd, page->id_.page_no, page->data_, PAGE_SIZE);
         //更新目标页的is_dirty_
         page->is_dirty_ = false;
         return true;
