@@ -145,7 +145,7 @@ void DiskManager::destroy_file(const std::string &path) {
 
     //检查文件是否存在
     if(!is_file(path)){
-        throw FileExistsError(path);
+        throw FileNotFoundError(path);
     }
     //检查文件是否已经关闭
     if (path2fd_.find(path) != path2fd_.end()) {
@@ -153,7 +153,7 @@ void DiskManager::destroy_file(const std::string &path) {
     }
     //删除文件
     if(unlink(path.c_str()) == -1) {
-        throw UnixError();
+        throw FileNotDeleteError(path);
     }
 }
 
@@ -170,7 +170,7 @@ int DiskManager::open_file(const std::string &path) {
 
     //检查文件是否存在
     if(!is_file(path)){
-        throw FileExistsError(path);
+        throw FileNotFoundError(path);
     }
     //检查文件是否已经打开,若已经打开则返回path对应的文件句柄
     if (path2fd_.find(path) != path2fd_.end()) {
@@ -186,7 +186,6 @@ int DiskManager::open_file(const std::string &path) {
     fd2path_.emplace(fd, path);
     //返回打开文件的文件句柄
     return fd;
-
 }
 
 /**
@@ -209,7 +208,6 @@ void DiskManager::close_file(int fd) {
     //更新文件打开列表
     path2fd_.erase(fd2path_[fd]);
     fd2path_.erase(fd);
-
 }
 
 
