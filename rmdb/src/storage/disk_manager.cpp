@@ -126,7 +126,7 @@ void DiskManager::create_file(const std::string &path) {
     //若文件不存在则创建文件
     int fd = open(path.c_str(), O_CREAT);
     if (fd == -1) {
-        throw UnixError();
+        throw UnixError();  
     }
     //创建完后需要关闭文件
     if (close(fd) == -1) {
@@ -144,7 +144,7 @@ void DiskManager::destroy_file(const std::string &path) {
     // 注意不能删除未关闭的文件
 
     //检查文件是否存在
-    if(is_file(path)){
+    if(!is_file(path)){
         throw FileExistsError(path);
     }
     //检查文件是否已经关闭
@@ -155,7 +155,6 @@ void DiskManager::destroy_file(const std::string &path) {
     if(unlink(path.c_str()) == -1) {
         throw UnixError();
     }
-
 }
 
 
